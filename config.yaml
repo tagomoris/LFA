@@ -1,0 +1,43 @@
+---
+resources:
+  - path: /api
+    resources:
+      - path: /country
+        methods:
+          GET: myfunc-countries
+      - path: /language
+        methods:
+          GET: myfunc2-list-language
+          PUT: myfunc2-register-language
+      - path: /data
+        resources:
+          - path: /csv
+            methods:
+              GET: myfunc-data-csv
+          - path: /json
+            methods:
+              GET: myfunc-data-json
+functions:
+  - name: myfunc-countries
+    handler: myfunc.Countries.process
+    env:
+      KEY1: yay
+      KEY2: foooooo
+  - name: myfunc2-list-language
+    handler: myfunc2.Handler::Language.list
+    env:
+      KEY1: yayyay
+      KEY2: foooooooooo
+  - name: myfunc2-register-language
+    handler: myfunc2.Handler::Language.register
+    env:
+      KEY1: yyyyay
+      KEY2: foo?
+  - name: myfunc-data-csv
+    handler: myfunc.Data.process
+    env:
+      OUTPUT_DATA_TYPE: csv
+  - name: myfunc-data-json
+    handler: myfunc.Data.process
+    env:
+      OUTPUT_DATA_TYPE: json
