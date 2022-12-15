@@ -9,9 +9,9 @@ The main purposes of LFA are:
 * run Lambda functions on EC2 (or container hosting services) **temporarily**
 * test Lambda function as web request handler on our laptop
 
-LFA was initially designed as a software for webapp hosting platform migration from AWS Lambda to EC2/ECS/k8s/etc by moving functions to app servers as-is. This provides time to engineers for re-implemention of native stand alone web applications.
+LFA was initially designed to host webapps migrated from AWS Lambda to EC2/ECS/k8s/etc by moving functions to app servers as-is. This provides time to engineers for re-implemention of native stand alone web applications.
 
-The 2nd purpose (testing on laptop) was found eventually on the development of LFA. We can't test web request handlers of AWS Lambda functions on our laptop directly (because we don't have local API Gateway), but we can do it locally with LFA on laptop. This MAY improve our dev-experience a little, or more.
+The 2nd purpose (testing on laptop) was found eventually during the development of LFA. We can't test web request handlers of AWS Lambda functions on our laptop directly (because we don't have local API Gateway), but we can do it locally with LFA on laptop. This MAY improve our dev-experience a little, or more.
 
 ## Features
 
@@ -34,7 +34,7 @@ Functions on LFA will be loaded in (semi-)isolated module spaces. Functions will
 
 The features below are not supported yet, but will be implemented eventually.
 
-* Parameterized resource paths (e.g., `/api/resource/{resourceId}`
+* Parameterized resource paths (e.g., `/api/resource/{resourceId}`)
 * Greedy path parameters (e.g., `/api/{proxy+}`)
 * CORS support and built-in `OPTIONS` method request handler
 * Loading functions from `.zip` archives
