@@ -1,5 +1,7 @@
 # LFA - Lambda Function Adapter
 
+**LFA is under development, and not released yet.**
+
 LFA is a web application framework in Ruby (Rack framework), to run AWS Lambda functions (migrated from AWS API Gateway integration) on Ruby's application servers (Unicorn, Puma, etc).
 
 The main purposes of LFA are:
