@@ -18,7 +18,9 @@ module LFA
         @enclosure = Module.new
         @enclosure.const_set(:ENV, @env)
         begin
-          Kernel.load(@filename, @enclosure)
+          ENV.mimic!(@env) do
+            Kernel.load(@filename, @enclosure)
+          end
         rescue => e
           raise "failed to load the function file '#{@filename}': #{e.message}"
         end
