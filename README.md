@@ -28,7 +28,7 @@ LFA uses a YAML file to:
 * configure functions with those environment variables
 * configure resource-function relations (just like AWS API Gateway)
 
-Functions on LFA will be loaded in (semi-)isolated module spaces. Functions will not effect to other functions (at least, unintentionally).
+Functions on LFA will be loaded in (semi-)isolated module spaces. Functions will not effect to other functions (at least, unintentionally). See "Limitations" section below about the function isolation.
 
 ### Features not supported yet
 
@@ -119,6 +119,126 @@ Run your Rack application as usual (for example, with `puma`):
 Or, using `rackup` (requires `gem i rackup`)
 
     $ rackup --server puma config.ru
+
+## Limitation
+
+The separation of Lambda functions is not perfect. That means:
+
+* The Ruby script `funcfile` of Lambda handler `funcfile.Modname.method_name` is loaded in an isolated namespace
+* Libraries `require`-ed from the Lambda file are NOT isolated, and be shared by all Lambda functions in the process
+* `ENV` access out of Lambda handler context in `require`-ed files will see the original `ENV`, instead of `env` configured
+
+To avoid those limitations, the Lambda functions loaded by LFA should take care of the following things.
+
+### Use common set of libraries
+
+Lambda functions should use the common set of libraries. That means, Lambda functions should:
+
+* have a common `lib` directory for its internal libraries
+* have a single `Gemfile` (and `Gemfile.lock`) to use the common set of gems
+
+If the Lambda functions are of single application, these things will be satisfied usually. Otherwise, don't share a single LFA process.
+
+### Create handler object/module in function files
+
+If your Lambda function's handler module is defined in `funcfile`, it's totally OK.
+
+```ruby
+# func.rb
+
+module Modname
+  def self.method_name(event:, context:)
+    # ...
+  end
+end
+# OK
+```
+
+But if the `funcfile` just requires your library and the library defines the handler module or instantiate the handler object, it MAY be NOT OK because that module/object are shared between different functions. It SHOULD be BAD when the handler object has internal states.
+
+```ruby
+# func.rb
+require_relative './lib/myapp/handler'
+# and it provides Modname module
+
+# MAY be NOT OK
+```
+
+If your Lambda handler has to have internal states, you should define a class, and instantiate it in `funcfile`, as following:
+
+```ruby
+# lib/myapp/handler.rb
+class MyHandler
+  def initialize
+    @internal_cache = {}
+  end
+
+  def process(event:, context:)
+    # ...
+  end
+end
+
+# func.rb
+require_relative './lib/myapp/handler'
+Handler = MyHandler.new
+
+# and specify the handler: func.Handler.process
+# OK!
+```
+
+### Refer ENV in dynamic manner
+
+LFA overrides the `ENV` reference in `funcfile`.
+
+```ruby
+# func.rb
+module HandlerA
+  DB_HOST = ENV['DB_HOST'] # this refers configured `env`
+
+  def process(event:, context:)
+    # ...
+  end
+end
+```
+
+But the `ENV` reference in the static context (code not in methods) in required libraries will refer the original environment variables of the LFA process, instead of configured `env` key-value pairs.
+
+```ruby
+# func.rb
+require_relative './lib/myapp/handler'
+Handler = HandlerB.new
+
+# lib/myapp/handler.rb
+class HandlerB
+  DB_HOST = ENV['DB_HOST'] # this refers the process's environment variables
+
+  def process(event:, context:)
+    # ...
+  end
+end
+```
+
+Even in libraries, code in methods called from `funcfile` will refer the configured `env`. So, `ENV` references should be written in methods, called dynamically.
+
+```ruby
+# func.rb
+require_relative './lib/myapp/handler'
+Handler = HandlerB.new
+
+# lib/myapp/handler.rb
+class HandlerB
+  def initialize
+    @db_host = ENV['DB_HOST'] # this refers the `env` configured
+  end
+
+  def process(event:, context:)
+    # Or, refer ENV in this handler method
+    # ...
+  end
+end
+```
+
+Gem libraries referring `ENV` should be initiated in methods, dynamically, as well.
 
 ## Contributing
 
