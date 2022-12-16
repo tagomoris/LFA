@@ -21,7 +21,7 @@ module LFA
       def initialize(tree)
         # TODO: path-method-to-function cache
         raise "functions is not specified" unless tree[:functions]
-        raise "resources is not specified" unless tree[:functions]
+        raise "resources is not specified" unless tree[:resources]
         @functions = Hash[*(tree[:functions].map{|f| Function.new(f) }.map{|f| [f.name, f] }.flatten)]
         @resources = tree[:resources].map{|r| Resource.new(r, @functions) }
       end
