@@ -78,7 +78,7 @@ module LFA
       end
 
       def inspect
-        "Function<name: #{@name}, handler: #{@handler}, env: #{@env}>"
+        "<Function name: #{@name}, handler: #{@handler}, env: #{@env}>"
       end
     end
 
