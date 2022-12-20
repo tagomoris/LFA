@@ -1,0 +1,35 @@
+---
+functions:
+  - name: func1-myapp1-yay
+    handler: func1.MyApp1.process
+    env:
+      FOO: "foowoo"
+  - name: func1-myapp2-yay
+    handler: func1.MyApp2.process
+    env:
+      FOO: "fwoooo"
+  - name: func1-myapp1-yay2
+    handler: func1.MyApp1.process
+    env:
+      FOO: "ffoowwoo"
+  - name: func1-myapp2-yay2
+    handler: func1.MyApp2.process
+    env:
+      FOO: "fffwwwwooo"
+resources:
+  - path: /r1
+    resources:
+      - path: /a
+        methods:
+          GET: func1-myapp1-yay
+      - path: /b
+        methods:
+          GET: func1-myapp2-yay
+  - path: /r2
+    resources:
+      - path: /a
+        methods:
+          GET: func1-myapp1-yay2
+      - path: /b
+        methods:
+          GET: func1-myapp2-yay2
