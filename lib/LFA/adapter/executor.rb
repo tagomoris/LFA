@@ -11,18 +11,18 @@ module LFA
       def initialize(name, env, handler)
         @name = name
         @env = env
-        @filename = handler.filename + ".rb"
         @klass = handler.klass.to_sym
         @method = handler.method.to_sym
 
         @enclosure = Module.new
         @enclosure.const_set(:ENV, @env)
+        path = handler.path
         begin
           ENV.mimic!(@env) do
-            Kernel.load(@filename, @enclosure)
+            Kernel.load(path, @enclosure)
           end
         rescue => e
-          raise "failed to load the function file '#{@filename}': #{e.message}"
+          raise "failed to load the function file '#{path}': #{e.message}"
         end
         @handler_instance = @enclosure.const_get(@klass)
         raise "failed to load the handler module '#{@klass}'" unless @handler_instance

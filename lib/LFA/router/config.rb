@@ -15,14 +15,15 @@ module LFA
         tree = File.open(yaml_filename) do |file|
           YAML.load(file.read, symbolize_names: true)
         end
-        Config.new(tree)
+        dirname = File.dirname(File.absolute_path(yaml_filename))
+        Config.new(tree, dirname)
       end
 
-      def initialize(tree)
+      def initialize(tree, dirname)
         # TODO: path-method-to-function cache
         raise "functions is not specified" unless tree[:functions]
         raise "resources is not specified" unless tree[:resources]
-        @functions = Hash[*(tree[:functions].map{|f| Function.new(f) }.map{|f| [f.name, f] }.flatten)]
+        @functions = Hash[*(tree[:functions].map{|f| Function.new(f, dirname) }.map{|f| [f.name, f] }.flatten)]
         @resources = tree[:resources].map{|r| Resource.new(r, @functions) }
       end
 
@@ -67,14 +68,14 @@ module LFA
     end
 
     class Function
-      attr_reader :name, :handler, :env
+      attr_reader :name, :handler, :env, :dirname
 
-      def initialize(obj)
+      def initialize(obj, dirname)
         raise "function name, handler are mandatory" unless obj[:name] && obj[:handler]
         @name = obj[:name]
         @handler_name = obj[:handler]
         @env = obj[:env] || {}
-        @handler = Handler.parse(@handler_name)
+        @handler = Handler.parse(@handler_name, dirname)
       end
 
       def inspect
@@ -85,20 +86,25 @@ module LFA
     class Handler
       attr_reader :filename, :klass, :method
 
-      def initialize(filename, klass, method)
+      def initialize(filename, klass, method, dirname)
         @filename = filename
         @klass = klass
         @method = method
+        @dirname = dirname
       end
 
-      def self.parse(name)
+      def self.parse(name, dirname)
         filename, klass, method = name.split('.', 3)
         raise "invalid handler format '#{name}'" unless filename && klass && method
-        Handler.new(filename, klass, method)
+        Handler.new(filename, klass, method, dirname)
       end
 
       def inspect
         "<Handler #{@filename}.#{@klass}.#{@method}>"
+      end
+
+      def path
+        File.join(@dirname, @filename + '.rb')
       end
     end
   end

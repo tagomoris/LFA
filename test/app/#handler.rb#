@@ -1,0 +1,4 @@
+class MyHandler1
+  def process(event:, context:)
+    env_foo = ENV['FOO']
+    {statusCode: 200, headers: {"X-My-Header" => "Yay", "X-My-Foo" => env_foo}, body: "Foo"}
