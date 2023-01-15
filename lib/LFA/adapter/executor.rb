@@ -11,7 +11,9 @@ module LFA
       def initialize(name, env, handler)
         @name = name
         @env = env
-        @klass = handler.klass.to_sym
+        @klass = handler.klass.to_s
+        # @klass must be a string because `const_get(:"A::B")` is not resolved
+        # https://bugs.ruby-lang.org/issues/12319
         @method = handler.method.to_sym
 
         @enclosure = Module.new
