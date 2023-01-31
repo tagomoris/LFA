@@ -17,6 +17,16 @@ resources:
           - path: /json
             methods:
               GET: myfunc-data-json
+      - path: /city
+        resources:
+          - path: /{city_name}
+            methods:
+              GET: myfunc-cities
+      - path: /town
+        resources:
+          - path: /{town_params+}
+            methods:
+              ANY: myfunc-towns
 functions:
   - name: myfunc-countries
     handler: myfunc.Countries.process
@@ -41,3 +51,7 @@ functions:
     handler: myfunc.Data.process
     env:
       OUTPUT_DATA_TYPE: json
+  - name: myfunc-cities
+    handler: myfunc.City.process
+  - name: myfunc-towns
+    handler: myfunc.Town.process

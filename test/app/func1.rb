@@ -16,3 +16,12 @@ class MyApp2Module
 end
 
 MyApp2 = MyApp2Module.new
+
+class MyApp3
+  def self.process(event:, context:)
+    query_k1 = event.dig("queryStringParameters", "key1")
+    query_k2 = event.dig("queryStringParameters", "key2")
+    path_p1 = event.dig("pathParameters", "p1")
+    {statusCode: 200, headers: {"X-My-Key1" => query_k1, "X-My-Key2" => query_k2, "X-My-Path1" => path_p1}, body: "Bar"}
+  end
+end

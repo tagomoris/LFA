@@ -19,9 +19,9 @@ module LFA
         cache_key = "#{method}\t#{path}"
         return @cache[cache_key] if @cache.has_key?(cache_key) # return stored nil when the cache key exists
 
-        function = @config.dig(path, method)
-        @cache[cache_key] = function # store negative cache to not pay too much cost for 404 when the function is nil
-        function
+        matched = @config.dig(path, method)
+        @cache[cache_key] = matched # store negative cache to not pay too much cost for 404 even when nil (404)
+        matched
       end
     end
   end

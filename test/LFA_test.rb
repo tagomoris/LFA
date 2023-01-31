@@ -54,4 +54,15 @@ class LFATest < Test::Unit::TestCase
     assert_equal("fffwwwwooo", response[1]["X-My-Foo"])
     assert_equal("Foo", response[2].join(''))
   end
+
+  test 'mounted function handles path parameters and query parameters' do
+    request = REQUEST_TEMPLATE.merge({"REQUEST_PATH" => "/r3/a/boo"})
+    response = @app.call(request)
+    assert_equal(200, response[0])
+    assert_equal(3, response[1].size)
+    assert_equal("value1", response[1]["X-My-Key1"])
+    assert_equal("value2", response[1]["X-My-Key2"])
+    assert_equal("boo", response[1]["X-My-Path1"])
+    assert_equal("Bar", response[2].join(''))
+  end
 end

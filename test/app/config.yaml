@@ -16,6 +16,8 @@ functions:
     handler: func1.MyApp2.process
     env:
       FOO: "fffwwwwooo"
+  - name: func1-myapp3-yay
+    handler: func1.MyApp3.process
 resources:
   - path: /r1
     resources:
@@ -33,3 +35,10 @@ resources:
       - path: /b
         methods:
           GET: func1-myapp2-yay2
+  - path: /r3
+    resources:
+      - path: /a
+        resources:
+          - path: /{p1}
+            methods:
+              GET: func1-myapp3-yay

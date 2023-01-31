@@ -26,16 +26,17 @@ module LFA
         path = request_path(env: env)
         method = http_method(env: env)
 
-        function = @resolver.resolve(path, method)
-        unless function
+        matched = @resolver.resolve(path, method)
+        unless matched
           return [404, {}, ["Resource not found"]]
         end
+        function = matched.function
         executor = @executors.fetch(function.name){ Executor.setup(function) }
         unless @executors.has_key?(function.name)
           @executors[function.name] = executor
         end
 
-        event = lambda_event(env: env)
+        event = lambda_event(env: env, path_parameters: matched.path_parameters.dup)
         context = lambda_context(function_name: function.name)
 
         result = executor.call(event: event, context: context)
