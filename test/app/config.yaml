@@ -18,6 +18,8 @@ functions:
       FOO: "fffwwwwooo"
   - name: func1-myapp3-yay
     handler: func1.MyApp3.process
+  - name: func1-myapp3-yayyay
+    handler: func1.MyApp3.process2
 resources:
   - path: /r1
     resources:
@@ -42,3 +44,8 @@ resources:
           - path: /{p1}
             methods:
               GET: func1-myapp3-yay
+      - path: /b
+        resources:
+          - path: /{p1+}
+            methods:
+              ANY: func1-myapp3-yayyay

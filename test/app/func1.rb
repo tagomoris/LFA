@@ -24,4 +24,9 @@ class MyApp3
     path_p1 = event.dig("pathParameters", "p1")
     {statusCode: 200, headers: {"X-My-Key1" => query_k1, "X-My-Key2" => query_k2, "X-My-Path1" => path_p1}, body: "Bar"}
   end
+
+  def self.process2(event:, context:)
+    path_p1 = event.dig("pathParameters", "p1")
+    {statusCode: 200, headers: {"X-My-Path1" => path_p1}, body: "Bar"}
+  end
 end

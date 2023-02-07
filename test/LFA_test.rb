@@ -65,4 +65,24 @@ class LFATest < Test::Unit::TestCase
     assert_equal("boo", response[1]["X-My-Path1"])
     assert_equal("Bar", response[2].join(''))
   end
+
+  sub_test_case 'greedy path parameters' do
+    test 'greedy path parameters match with non-nested path' do
+      request = REQUEST_TEMPLATE.merge({"REQUEST_PATH" => "/r3/b/boo"})
+      response = @app.call(request)
+      assert_equal(200, response[0])
+      assert_equal(1, response[1].size)
+      assert_equal("boo", response[1]["X-My-Path1"])
+      assert_equal("Bar", response[2].join(''))
+    end
+
+    test 'greedy path parameters match with nested path' do
+      request = REQUEST_TEMPLATE.merge({"REQUEST_PATH" => "/r3/b/boo/fooo/wooo"})
+      response = @app.call(request)
+      assert_equal(200, response[0])
+      assert_equal(1, response[1].size)
+      assert_equal("boo/fooo/wooo", response[1]["X-My-Path1"])
+      assert_equal("Bar", response[2].join(''))
+    end
+  end
 end
