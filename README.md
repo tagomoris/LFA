@@ -34,8 +34,6 @@ Functions on LFA will be loaded in (semi-)isolated module spaces. Functions will
 
 The features below are not supported yet, but will be implemented eventually.
 
-* Parameterized resource paths (e.g., `/api/resource/{resourceId}`)
-* Greedy path parameters (e.g., `/api/{proxy+}`)
 * CORS support and built-in `OPTIONS` method request handler
 * Loading functions from `.zip` archives
 
@@ -91,6 +89,14 @@ resources:
           - path: /json
             methods:
               GET: myfunc-data-json
+  - path: /web
+    resources:
+      - path: /blog/{entry_id}
+        methods:
+          GET: blog-entry-get
+      - path: /assets/{asset_path+}
+        methods:
+          ANY: blog-asset-access
 functions:
   - name: myfunc-countries
     handler: myfunc.Countries.process
@@ -105,6 +111,7 @@ functions:
     handler: myfunc.Data.process
     env:
       OUTPUT_DATA_TYPE: json
+# omit blog-entry-get and blog-asset-access
 ```
 
 The actual Lambda functions should be placed on the same directory with those configuration files.
