@@ -40,7 +40,7 @@ module LFA
           resource = resource.resources.find{|r| r.is_wildcard? || r.path == part }
           if resource
             if resource.is_wildcard? && resource.is_greedy_wildcard?
-              path_parameters[resource.parameter_name] = (parts[i..-1].join)[1..-1] # omit heading '/'
+              path_parameters[resource.parameter_name] = (parts[index..-1].join)[1..-1] # omit heading '/'
               break
             elsif resource.is_wildcard?
               path_parameters[resource.parameter_name] = part[1..-1] # omit heading '/'
@@ -102,7 +102,7 @@ module LFA
             @greedy_match = false
           end
         end
-        if @greedy_match.!.! && @methods != [:ANY]
+        if @greedy_match.!.! && @methods.keys != [:ANY]
           raise "resource with a greedy path parameter '{part+}' must respond to only ANY method"
         end
       end
