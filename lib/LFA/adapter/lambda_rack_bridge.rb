@@ -14,7 +14,7 @@ module LFA
         env["REQUEST_METHOD"]
       end
 
-      def lambda_event(env:)
+      def lambda_event(env:, path_parameters:)
         headers, mv_headers = build_headers(env)
         query_params, mv_query_params = build_query_params(env)
         {
@@ -25,7 +25,7 @@ module LFA
           "multiValueHeaders" => mv_headers,
           "queryStringParameters"           => query_params,
           "multiValueQueryStringParameters" => mv_query_params,
-          "pathParameters" => nil, # set when path parameters are supported
+          "pathParameters" => path_parameters, # set when path parameters are supported
           "stageVariables" => nil, # LFA will not support deployments on stages
           "requestContext" => {},  # skipped for now because it seems not useful...
           "body" => env["rack.input"],

@@ -5,7 +5,7 @@ require 'yaml'
 module LFA
   module Router
     RESOURCE_METHODS = [
-      :GET, :POST, :PUT,
+      :GET, :POST, :PUT, :ANY,
     ].freeze
 
     class Config
@@ -27,8 +27,6 @@ module LFA
         @resources = tree[:resources].map{|r| Resource.new(r, @functions) }
       end
 
-      PATH_PART_PATTERN = /\/[-_a-zA-Z0-9]+(.*)$/
-
       def dig(path, method)
         raise "invalid path" unless path.start_with?("/")
         parts = if path == "/"
@@ -37,23 +35,51 @@ module LFA
                   path.split("/").filter{|str| str.size > 0 }.map{|part| "/" + part}
                 end
         resource = self
-        parts.each do |part|
-          resource = resource.resources.find{|r| r.path == part }
-          break unless resource
+        path_parameters = {}
+        parts.each_with_index do |part, index|
+          resource = resource.resources.find{|r| r.is_wildcard? || r.path == part }
+          if resource
+            if resource.is_wildcard? && resource.is_greedy_wildcard?
+              path_parameters[resource.parameter_name] = (parts[index..-1].join)[1..-1] # omit heading '/'
+              break
+            elsif resource.is_wildcard?
+              path_parameters[resource.parameter_name] = part[1..-1] # omit heading '/'
+            end
+          else # resource == nil
+            break
+          end
         end
         if resource
-          resource.methods[method.to_sym] # => Function
+          if resource.is_greedy_wildcard?
+            MatchedFunction.new(
+              function: resource.methods.fetch(:ANY),
+              path_parameters: path_parameters,
+            )
+          else
+            func = resource.methods[method.to_sym]
+            if func
+              MatchedFunction.new(
+                function: func,
+                path_parameters: path_parameters.size > 0 ? path_parameters : nil,
+              )
+            else
+              nil
+            end
+          end
         else
           nil # when the resource is not found
         end
       end
     end
 
+    MatchedFunction = Data.define(:function, :path_parameters)
+
     class Resource
-      attr_reader :path, :methods, :resources
+      attr_reader :path, :parameter_name, :methods, :resources
 
       def initialize(obj, functions)
         @path = obj[:path]
+        raise "path must start with '/'" unless @path.start_with?('/')
         @methods_hash = obj[:methods] || []
         @resources_array = obj[:resources] || []
         @methods = {}
@@ -64,6 +90,29 @@ module LFA
           @methods[method_name] = functions[function_name]
         end
         @resources = @resources_array.map{|resource_obj| Resource.new(resource_obj, functions) }
+
+        @parameter_name = nil
+        @greedy_match = nil
+        if @path.start_with?('/{') && @path.end_with?('}')
+          if @path.end_with?('+}')
+            @parameter_name = @path[2..-3]
+            @greedy_match = true
+          else
+            @parameter_name = @path[2..-2]
+            @greedy_match = false
+          end
+        end
+        if @greedy_match.!.! && @methods.keys != [:ANY]
+          raise "resource with a greedy path parameter '{part+}' must respond to only ANY method"
+        end
+      end
+
+      def is_wildcard?
+        @parameter_name != nil
+      end
+
+      def is_greedy_wildcard?
+        @greedy_match.!.!
       end
     end
 
