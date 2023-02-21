@@ -2,6 +2,7 @@
 
 require 'securerandom'
 require 'cgi'
+require 'stringio'
 
 module LFA
   class Adapter
@@ -45,9 +46,9 @@ module LFA
         #   headers: {"content-type" => "application/json"},
         # }
         ### Rack response
-        # [200, {"content-type" => "application/json"}, [body]]
-
-        [resp[:statusCode], resp[:headers], [resp[:body]]]
+        # [200, {"content-type" => "application/json"}, body]
+        body = StringIO.new(resp[:body])
+        [resp[:statusCode], resp[:headers], body]
       end
 
 
