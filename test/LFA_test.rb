@@ -22,7 +22,7 @@ class LFATest < Test::Unit::TestCase
     assert_equal(2, response[1].size)
     assert_equal("Yay", response[1]["X-My-Header"])
     assert_equal("foowoo", response[1]["X-My-Foo"])
-    assert_equal("Foo", response[2].join(''))
+    assert_equal("Foo", read_body(response[2]))
   end
 
   test 'mounted function returns a response with ENV overridden in the initialize' do
@@ -32,7 +32,7 @@ class LFATest < Test::Unit::TestCase
     assert_equal(2, response[1].size)
     assert_equal("Yay", response[1]["X-My-Header"])
     assert_equal("fwoooo", response[1]["X-My-Foo"])
-    assert_equal("Foo", response[2].join(''))
+    assert_equal("Foo", read_body(response[2]))
   end
 
   test 'mounted function returns a response with the different ENV for the same function' do
@@ -42,7 +42,7 @@ class LFATest < Test::Unit::TestCase
     assert_equal(2, response[1].size)
     assert_equal("Yay", response[1]["X-My-Header"])
     assert_equal("ffoowwoo", response[1]["X-My-Foo"])
-    assert_equal("Foo", response[2].join(''))
+    assert_equal("Foo", read_body(response[2]))
   end
 
   test 'mounted function returns a response with the different ENV in the initializer' do
@@ -52,7 +52,7 @@ class LFATest < Test::Unit::TestCase
     assert_equal(2, response[1].size)
     assert_equal("Yay", response[1]["X-My-Header"])
     assert_equal("fffwwwwooo", response[1]["X-My-Foo"])
-    assert_equal("Foo", response[2].join(''))
+    assert_equal("Foo", read_body(response[2]))
   end
 
   test 'mounted function handles path parameters and query parameters' do
@@ -63,7 +63,7 @@ class LFATest < Test::Unit::TestCase
     assert_equal("value1", response[1]["X-My-Key1"])
     assert_equal("value2", response[1]["X-My-Key2"])
     assert_equal("boo", response[1]["X-My-Path1"])
-    assert_equal("Bar", response[2].join(''))
+    assert_equal("Bar", read_body(response[2]))
   end
 
   sub_test_case 'greedy path parameters' do
@@ -73,7 +73,7 @@ class LFATest < Test::Unit::TestCase
       assert_equal(200, response[0])
       assert_equal(1, response[1].size)
       assert_equal("boo", response[1]["X-My-Path1"])
-      assert_equal("Bar", response[2].join(''))
+      assert_equal("Bar", read_body(response[2]))
     end
 
     test 'greedy path parameters match with nested path' do
@@ -82,7 +82,7 @@ class LFATest < Test::Unit::TestCase
       assert_equal(200, response[0])
       assert_equal(1, response[1].size)
       assert_equal("boo/fooo/wooo", response[1]["X-My-Path1"])
-      assert_equal("Bar", response[2].join(''))
+      assert_equal("Bar", read_body(response[2]))
     end
   end
 end
