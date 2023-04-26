@@ -13,7 +13,7 @@ module LFA
 
       def self.parse(yaml_filename)
         tree = File.open(yaml_filename) do |file|
-          YAML.load(file.read, symbolize_names: true)
+          YAML.load(file.read, symbolize_names: true, aliases: true)
         end
         dirname = File.dirname(File.absolute_path(yaml_filename))
         Config.new(tree, dirname)
