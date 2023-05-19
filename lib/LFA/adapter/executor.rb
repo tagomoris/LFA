@@ -16,19 +16,25 @@ module LFA
         # https://bugs.ruby-lang.org/issues/12319
         @method = handler.method.to_sym
 
-        @enclosure = Module.new
-        @enclosure.const_set(:ENV, @env)
+        # @enclosure = Module.new
+        # @enclosure.const_set(:ENV, @env)
+        m1 = Module.new
+        m1.const_set(:ENV, @env)
         path = handler.path
         begin
           ENV.mimic!(@env) do
-            Kernel.load(path, @enclosure)
+            load(path, m1)
           end
         rescue => e
-          raise "failed to load the function file '#{path}': #{e.message}"
+          raise "failed to load the function file '#{path}': #{e.class}, #{e.message}"
         end
         @handler_instance = @enclosure.const_get(@klass)
-        raise "failed to load the handler module '#{@klass}'" unless @handler_instance
-        @handler_method = @handler_instance.method(@method)
+        # @handler_instance = @enclosure.const_get(@klass)
+        # raise "failed to load the handler module '#{@klass}'" unless @handler_instance
+        # @handler_method = @handler_instance.method(@method)
+        instance = m1.const_get(@klass)
+        raise "failed to load the handler module '#{@klass}'" unless instance
+        @handler_method = instance.method(@method)
       end
 
       def call(event:, context:)
