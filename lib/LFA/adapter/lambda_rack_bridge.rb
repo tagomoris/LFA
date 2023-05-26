@@ -51,12 +51,13 @@ module LFA
         [resp[:statusCode], resp[:headers], body]
       end
 
+      HEADER_ENV_KEYS = ['CONTENT_TYPE', 'CONTENT_LENGTH']
 
       def build_headers(env)
         headers = Headers.new
         multi_value_headers = Headers.new
         env.keys.each do |env_key_name|
-          next unless env_key_name =~ /^HTTP_/
+          next unless env_key_name =~ /^HTTP_/ || HEADER_ENV_KEYS.include?(env_key_name)
           next if env_key_name == 'HTTP_VERSION'
           header_name = header_name_from_env_name(env_key_name)
           value = env[env_key_name]
