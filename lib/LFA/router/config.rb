@@ -5,7 +5,7 @@ require 'yaml'
 module LFA
   module Router
     RESOURCE_METHODS = [
-      :GET, :POST, :PUT, :ANY,
+      :GET, :POST, :PUT, :OPTIONS, :ANY,
     ].freeze
 
     class Config
@@ -117,18 +117,39 @@ module LFA
     end
 
     class Function
-      attr_reader :name, :handler, :env, :dirname
+      attr_reader :name, :handler, :env, :params, :dirname
 
       def initialize(obj, dirname)
         raise "function name, handler are mandatory" unless obj[:name] && obj[:handler]
         @name = obj[:name]
         @handler_name = obj[:handler]
         @env = obj[:env] || {}
-        @handler = Handler.parse(@handler_name, dirname)
+        @params = obj[:params] || {}
+        @handler = if @handler_name =~ /\A[A-Z0-9_]+\z/
+                     BuiltInHandler.new(@handler_name)
+                   else
+                     Handler.parse(@handler_name, dirname)
+                   end
       end
 
       def inspect
-        "<Function name: #{@name}, handler: #{@handler}, env: #{@env}>"
+        "<Function name: #{@name}, handler: #{@handler}, env: #{@env}, params: #{@params}>"
+      end
+    end
+
+    class BuiltInHandler
+      attr_reader :name
+
+      def initialize(handler_name)
+        @name = handler_name
+      end
+
+      def builtin?
+        true
+      end
+
+      def inspect
+        "<BuiltInHandler #{@name}>"
       end
     end
 
@@ -146,6 +167,10 @@ module LFA
         filename, klass, method = name.split('.', 3)
         raise "invalid handler format '#{name}'" unless filename && klass && method
         Handler.new(filename, klass, method, dirname)
+      end
+
+      def builtin?
+        false
       end
 
       def inspect

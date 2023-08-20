@@ -27,6 +27,12 @@ resources:
           - path: /{town_params+}
             methods:
               ANY: myfunc-towns
+  - path: /webapi
+    methods:
+      GET: webapi-func-handler
+      POST: webapi-func-handler
+      OPTIONS: cors-1
+
 functions:
   - name: myfunc-countries
     handler: myfunc.Countries.process
@@ -55,3 +61,19 @@ functions:
     handler: myfunc.City.process
   - name: myfunc-towns
     handler: myfunc.Town.process
+  - name: webapi-func-handler
+    handler: webapi.Func.process
+  - name: cors-1
+    handler: CORS
+    params:
+      mirrorAllowOrigin: true
+      # allowOrigin: '*'
+      allowCredentials: true
+      allowMethods:
+        - GET
+        - POST
+        - OPTIONS
+      allowHeaders:
+        - Content-Type
+        - Authorization
+      maxAge: 3600

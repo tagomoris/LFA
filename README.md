@@ -247,6 +247,113 @@ end
 
 Gem libraries referring `ENV` should be initiated in methods, dynamically, as well.
 
+## Predefined Handlers
+
+### CORS: Preflight Request Handler
+
+Just like enabling `CORS` on AWS API Gateway, LFA has the built-in CORS preflight request handler. It can respond to `OPTIONS` request on resources, instead of Lambda functions.
+
+For the details of CORS requests/responses, see [MDN documents](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) or any other resources.
+
+To enable CORS preflight request handler, specify `CORS` as `handler`:
+
+```yaml
+resources:
+  - path: /a
+    methods:
+      GET: func1-myapp1-yay
+      OPTIONS: cors-1
+functions:
+  - name: cors-1
+    handler: CORS
+    params:
+      allowOrigins:
+        - '*'
+      allowMethods:
+        - GET
+        - OPTIONS
+      allowHeaders:
+        - Content-Type
+        - Authorization
+```
+
+All parameters of the handler should be under `params` key. Available parameters are:
+
+#### allowOrigins
+
+Fixed values for the response header `access-control-allow-origin`. A string, or list of strings.
+
+```yaml
+allowOrigins: '*'
+allowOrigins: 'https://example.com, https://www.example.com'
+allowOrigins:
+    - 'https://example.com'
+    - 'https://www.example.com'
+```
+
+Exclusive with `mirrorAllowOrigin`. One of `allowOrigins` or `mirrorAllowOrigin` should be specified.
+
+#### mirrorAllowOrigin
+
+`true` or `false` (or missing) value, which specifies to respond `access-control-allow-origin` value with the value of the request header `Origin`.
+
+```yaml
+mirrorAllowOrigin: true
+```
+
+The handler with `mirrorAllowOrigin: true` will respond `access-control-allow-origin: https://example.com` for the request with a header `origin: https://example.com`.
+
+Exclusive with `allowOrigins`. One of `allowOrigins` or `mirrorAllowOrigin` should be specified.
+
+#### allowMethods
+
+Fixed values for the response header `access-control-allow-methods`. A string, or list of strings. Should be specified.
+
+```yaml
+allowMethods: GET, POST, PUT, DELETE, OPTIONS
+allowMethods:
+  - GET
+  - POST
+  - OPTIONS
+```
+
+#### allowHeaders
+
+Fixed values for the response header `access-control-allow-headers`. A string, or list of strings. Optional.
+
+```yaml
+allowHeaders: x-my-custom-header
+allowHeaders:
+  - authorization
+  - x-my-custom-header
+```
+
+#### allowCredentials
+
+`true` or `false` (or missing) to specify `access-control-allow-credentials`. Optional.
+
+```yaml
+allowCredentials: true
+```
+
+#### exposeHeaders
+
+Fixed values for the response header `access-control-expose-headers`. A string, or list of strings. Optional.
+
+```yaml
+exposeHeaders: x-my-custom-header
+exposeHeaders:
+  - x-my-custom-header
+```
+
+#### maxAge
+
+A fixed number (seconds) for the response header `access-control-max-age`. Optional.
+
+```yaml
+maxAge: 86400
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/tagomoris/LFA.

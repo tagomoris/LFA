@@ -20,15 +20,40 @@ functions:
     handler: func1.MyApp3.process
   - name: func1-myapp3-yayyay
     handler: func1.MyApp3.process2
+  - name: cors-1
+    handler: CORS
+    params:
+      allowOrigins:
+        - https://example.com
+        - https://web.example.com
+      allowCredentials: true
+      allowHeaders:
+        - 'authorization'
+        - 'x-my-custom-header'
+      allowMethods:
+        - GET
+        - POST
+        - OPTIONS
+  - name: cors-2
+    handler: CORS
+    params:
+      mirrorAllowOrigin: true
+      allowCredentials: true
+      allowHeaders: 'Authorization, X-My-Custom-Header'
+      allowMethods: 'GET, POST, PUT, OPTIONS'
+      exposeHeaders: 'X-My-Custom-Header'
+      maxAge: 86400
 resources:
   - path: /r1
     resources:
       - path: /a
         methods:
           GET: func1-myapp1-yay
+          OPTIONS: cors-1
       - path: /b
         methods:
           GET: func1-myapp2-yay
+          OPTIONS: cors-2
   - path: /r2
     resources:
       - path: /a
