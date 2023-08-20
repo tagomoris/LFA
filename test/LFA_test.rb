@@ -85,4 +85,41 @@ class LFATest < Test::Unit::TestCase
       assert_equal("Bar", read_body(response[2]))
     end
   end
+
+  sub_test_case 'CORS handler' do
+    test 'simple fixed handler behavior' do
+      request = {
+        "REQUEST_METHOD" => "OPTIONS",
+        "HTTP_VERSION" => "1.1",
+        "HTTP_ORIGIN" => "https://localhost:9292",
+        "REQUEST_PATH" => "/r1/a",
+      }
+      response = @app.call(request)
+      assert_equal(200, response[0])
+      assert_equal(4, response[1].size)
+      assert_equal('true', response[1]['access-control-allow-credentials'])
+      assert_equal('authorization, x-my-custom-header', response[1]['access-control-allow-headers'])
+      assert_equal('GET, POST, OPTIONS', response[1]['access-control-allow-methods'])
+      assert_equal('https://example.com, https://web.example.com', response[1]['access-control-allow-origin'])
+      assert_equal('', read_body(response[2]))
+    end
+
+    test 'mirror Origin value' do
+      request = {
+        "REQUEST_METHOD" => "OPTIONS",
+        "HTTP_VERSION" => "1.1",
+        "HTTP_ORIGIN" => "https://localhost:9292",
+        "REQUEST_PATH" => "/r1/b",
+      }
+      response = @app.call(request)
+      assert_equal(200, response[0])
+      assert_equal(7, response[1].size)
+      assert_equal('true', response[1]['access-control-allow-credentials'])
+      assert_equal('Authorization, X-My-Custom-Header', response[1]['access-control-allow-headers'])
+      assert_equal('GET, POST, PUT, OPTIONS', response[1]['access-control-allow-methods'])
+      assert_equal('https://localhost:9292', response[1]['access-control-allow-origin'])
+      assert_equal('Origin', response[1]['vary'])
+      assert_equal('', read_body(response[2]))
+    end
+  end
 end
