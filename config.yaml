@@ -66,11 +66,14 @@ functions:
   - name: cors-1
     handler: CORS
     params:
-      allowOrigins: '*'
+      mirrorAllowOrigin: true
+      # allowOrigin: '*'
       allowCredentials: true
       allowMethods:
         - GET
         - POST
+        - OPTIONS
       allowHeaders:
         - Content-Type
         - Authorization
+      maxAge: 3600
