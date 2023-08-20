@@ -1,75 +1,79 @@
 # frozen_string_literal: true
 
 module LFA
-  class Adapter
-    class Handler
-      class CORSHandler
-        def self.setup(...)
-        end
-
-        def initialize
-        end
-
-        
-        #### You can specify the following parameters in a CORS configuration.
-        # CORS headers                       CORS configuration property    Example values
-        # Access-Control-Allow-Origin        allowOrigins                   https://www.example.com
-        #                                                                   * (allow all origins)
-        #                                                                   https://* (allow any origin that begins with https://)
-        #                                                                   http://* (allow any origin that begins with http://)
-        # Access-Control-Allow-Credentials   allowCredentials               true
-        # Access-Control-Expose-Headers      exposeHeaders                  Date, x-api-id
-        # Access-Control-Max-Age             maxAge                         300
-        # Access-Control-Allow-Methods       allowMethods                   GET, POST, DELETE, *
-        # Access-Control-Allow-Headers       allowHeaders                   Authorization, *
-
-        # レスポンスヘッダー                    マッピングの値
-        # Access-Control-Allow-Credentials  'true'	
-        # Access-Control-Allow-Headers      'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'	
-        # Access-Control-Allow-Methods      'GET,POST,OPTIONS'
-        # Content-Type                      application/json
-
-        #set($origin = $input.params().header.get('origin'))
-        #if ($origin.matches("^http(s?)://(localhost|127\.0\.0\.1|.*\.pathtraq\.tagomor\.is)(:?\d+)?"))
-        #  set($context.responseOverride.header.Access-Control-Allow-Origin = $origin)
-        #end
-
-        def call(event:, context:)
+  module Handler
+    module Parameterized
+      def stringify(value)
+        case value
+        when Array
+          value.map(&:to_s).join(', ')
+        when String
+          value
+        when nil
+          nil
+        else
+          value.to_s
         end
       end
+    end
 
-      def self.setup(function)
-        env = Hash[*(function.env.map{|k,v| [k.to_s, v] }.flatten)]
-        Executor.new(function.name, env, function.handler)
-      end
+    class CORSPreflight
+      include Parameterized
 
-      def initialize(name, env, handler)
-        @name = name
-        @env = env
-        @klass = handler.klass.to_s
-        # @klass must be a string because `const_get(:"A::B")` is not resolved
-        # https://bugs.ruby-lang.org/issues/12319
-        @method = handler.method.to_sym
+      def initialize(params)
+        @allow_origins = stringify(params[:allowOrigins])
+        @mirror_allow_origin = params[:mirrorAllowOrigin]
 
-        @enclosure = Module.new
-        @enclosure.const_set(:ENV, @env)
-        path = handler.path
-        begin
-          ENV.mimic!(@env) do
-            Kernel.load(path, @enclosure)
-          end
-        rescue => e
-          raise "failed to load the function file '#{path}': #{e.message}"
+        @allow_credentials = stringify(params[:allowCredentials])
+        @allow_headers = stringify(params[:allowHeaders])
+        @allow_methods = stringify(params[:allowMethods])
+        @expose_headers = stringify(params[:exposeHeaders])
+        @max_age = stringify(params[:maxAge])
+
+        if @allow_origins && @mirror_allow_origin
+          raise "Configuration error, allowOrigins and mirrorAllowOrigin are exclusive"
         end
-        @handler_instance = @enclosure.const_get(@klass)
-        raise "failed to load the handler module '#{@klass}'" unless @handler_instance
-        @handler_method = @handler_instance.method(@method)
       end
 
       def call(event:, context:)
-        ENV.mimic!(@env) do
-          @handler_method.call(event: event, context: context)
+        unless event.fetch("httpMethod") == 'OPTIONS'
+          raise "CORS handler can respond to OPTIONS only, but the request is '#{event.fetch("httpMethod")}'"
         end
+
+        # This handler ignores the preflight request headers below:
+        # * Access-Control-Request-Method
+        # * Access-Control-Request-Headers
+        # System administrator should be able to configure this handler without use of those headers, probably.
+        origin = event.dig("headers", "origin")
+        {statusCode: 200, body: '', headers: cors_headers(origin)}
+      end
+
+      def cors_headers(origin)
+        headers = {}
+        if @allow_origins
+          headers['access-control-allow-origin'] = @allow_origins
+        end
+        if @mirror_allow_origin
+          headers['access-control-allow-origin'] = origin
+          headers['vary'] = 'Origin'
+        end
+        if @allow_credentials
+          headers['access-control-allow-credentials'] = @allow_credentials
+        end
+        if @allow_headers
+          headers['access-control-allow-headers'] = @allow_headers
+        end
+        if @allow_methods
+          headers['access-control-allow-methods'] = @allow_methods
+        end
+        if @expose_headers
+          headers['access-control-expose-headers'] = @expose_headers
+        end
+        if @max_age
+          headers['access-control-max-age'] = @max_age
+        end
+
+        headers
       end
     end
   end
