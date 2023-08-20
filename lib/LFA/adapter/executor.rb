@@ -1,11 +1,21 @@
 # frozen_string_literal: true
 
+require_relative '../handler/cors'
+
 module LFA
   class Adapter
     class Executor
+      BUILT_IN_HANDLERS = {
+        'CORS' => Handler::CORSPreflight,
+      }
+
       def self.setup(function)
-        env = Hash[*(function.env.map{|k,v| [k.to_s, v] }.flatten)]
-        Executor.new(function.name, env, function.handler)
+        if function.handler.builtin?
+          BUILT_IN_HANDLERS[function.handler.name].new(function.params)
+        else
+          env = Hash[*(function.env.map{|k,v| [k.to_s, v] }.flatten)]
+          Executor.new(function.name, env, function.handler)
+        end
       end
 
       def initialize(name, env, handler)
