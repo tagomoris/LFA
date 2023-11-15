@@ -5,7 +5,7 @@ require 'yaml'
 module LFA
   module Router
     RESOURCE_METHODS = [
-      :GET, :POST, :PUT, :OPTIONS, :ANY,
+      :GET, :POST, :PUT, :DELETE, :HEAD, :PATCH, :OPTIONS, :ANY,
     ].freeze
 
     class Config
